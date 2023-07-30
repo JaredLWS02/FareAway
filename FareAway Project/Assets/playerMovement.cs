@@ -9,9 +9,9 @@ public class playerMovement : MonoBehaviour
     float horizontal;
     float vertical;
     private float rotZ;
+    private bool slowed = false;
     [SerializeField] private float rotationSpeed;
     public float moveSpeed = 5.0f;
-
     private bool canDash = true;
     private bool isDashing = false;
     [SerializeField] private float dashSpeed = 6f;
@@ -47,7 +47,7 @@ public class playerMovement : MonoBehaviour
             moveSpeed = dashSpeed;
             tr.emitting = true;
         }
-        else
+        else if(slowed != true)
         {
             moveSpeed = 5;
             tr.emitting = false;
@@ -81,6 +81,27 @@ public class playerMovement : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, rotZ);
     }
 
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        if (col.gameObject.tag == "obstacle")
+        {
+            slowed = true;
+            Destroy(col.gameObject);
+            StartCoroutine(slow());
+        }
+        else if(col.gameObject.tag == "enemy")
+        {
+            body.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY;
+        }
+    }
+
+    private IEnumerator slow()
+    {
+        body.velocity = new Vector2(25 * moveSpeed * Time.deltaTime,0);
+        yield return new WaitForSeconds(1);
+        slowed = false;
+    }
+
     private IEnumerator Dash()
     {
         canDash = false;
@@ -96,4 +117,6 @@ public class playerMovement : MonoBehaviour
         isDashing = false;
         canDash = true;
     }
+
+
 }
